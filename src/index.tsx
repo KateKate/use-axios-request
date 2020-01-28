@@ -1,7 +1,11 @@
 import * as React from 'react';
 import axios from 'axios';
 import ReactDOM from 'react-dom';
-import { useAxiosRequest, useAxiosRequestRender } from './useAxiosRequest';
+import {
+  useAxiosRequest,
+  useAxiosRequestRender,
+  CachePolicy,
+} from './useAxiosRequest';
 
 // Simulate slower network
 axios.interceptors.response.use(
@@ -64,11 +68,17 @@ const Child = () => {
   );
 };
 
-const CacheTestChild = ({ config }: { config: string | null }) => {
+const CacheTestChild = ({
+  config,
+  cache,
+}: {
+  config: string | null;
+  cache: CachePolicy;
+}) => {
   const children = useAxiosRequestRender<any>({
     config,
     options: {
-      cache: true,
+      cache,
     },
     render: ({ data, config }) => {
       if (config == null) {
@@ -101,20 +111,67 @@ const CacheTest = () => {
   const [config, setConfig] = React.useState<string | null>(null);
 
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [cache, setCache] = React.useState(CachePolicy.CacheAndNetwork);
+
   const onClick = () => {
     if (inputRef.current) {
-      setConfig(inputRef.current.value);
+      if (inputRef.current.value) {
+        setConfig(inputRef.current.value);
+      }
+    }
+  };
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e && e.target) {
+      setCache(e.target.value as CachePolicy);
+      setConfig(null);
     }
   };
 
   return (
     <div>
+      <h2>Cache Policy</h2>
       <h3>Current config: {config == null ? 'null' : config}</h3>
-      <input ref={inputRef} />
-      <button onClick={onClick}>Go!</button>
-      <CacheTestChild config={config} />
-      <CacheTestChild config={config} />
-      <CacheTestChild config={config} />
+      <div>
+        <label>endpoint: </label>
+        <input ref={inputRef} size={100} />
+      </div>
+      <div style={{ margin: '10px 0' }}>
+        <div>
+          <input
+            type="radio"
+            name="cache"
+            value={CachePolicy.NoCache}
+            onChange={onChange}
+            checked={cache === CachePolicy.NoCache}
+          />
+          <label>no-cache</label>
+        </div>
+        <div>
+          <input
+            type="radio"
+            name="cache"
+            value={CachePolicy.CacheFirst}
+            onChange={onChange}
+            checked={cache === CachePolicy.CacheFirst}
+          />
+          <label>cache-first</label>
+        </div>
+        <div>
+          <input
+            type="radio"
+            name="cache"
+            value={CachePolicy.CacheAndNetwork}
+            onChange={onChange}
+            checked={cache === CachePolicy.CacheAndNetwork}
+          />
+          <label>cache-and-network</label>
+        </div>
+      </div>
+      <button onClick={onClick}>GOOOO!</button>
+      <CacheTestChild config={config} cache={cache} />
+      <CacheTestChild config={config} cache={cache} />
+      <CacheTestChild config={config} cache={cache} />
     </div>
   );
 };

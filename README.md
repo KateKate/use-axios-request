@@ -62,8 +62,8 @@ const Avatar = ({ username }) => {
 Performing a `POST` request
 
 ```js
-import React from "react";
-import { useAxiosRequest } from "use-axios-request";
+import React from 'react';
+import { useAxiosRequest } from 'use-axios-request';
 
 const NewIssue = ({ title, body, owner, repo }) => {
   const { isFetching, update } = useAxiosRequest();
@@ -72,15 +72,16 @@ const NewIssue = ({ title, body, owner, repo }) => {
     <button
       disabled={isFetching}
       onClick={() => {
-      update({
-        url: `https://api.github.com/repos/${owner}/${repo}/issues`,
-        method: 'post',
-        data: {
-          title,
-          body,
-        },
-      })
-    }}>
+        update({
+          url: `https://api.github.com/repos/${owner}/${repo}/issues`,
+          method: 'post',
+          data: {
+            title,
+            body
+          }
+        });
+      }}
+    >
       Submit New Issue
     </button>
   );
@@ -108,13 +109,15 @@ const Component = () => {
     // Milliseconds that determine how often should the data with the same config is polled.
     // No polling occures if 0 is passed. Defaults to 0.
     pollInterval: 0,
-    // Boolean. If true, response data will be cached. Internal axios buildURL is used to
-    // generate a cache key.
-    cache: false,
+    // Inspired by Apollo https://www.apollographql.com/
+    // 'no-cache' (default value) - it never returns cached date, it'll always make network request.
+    // 'cache-first' - it returns cached data OR will make network request.
+    // 'cache-and-network' - it returns cached data AND will make network request to keep it fresh.
+    cache: 'no-cache | cache-first | cache-and-network',
     // A Callback that is called after a successful response
     onSuccess: () => setShowModal(false),
     // A Callback that is called after an error response
-    onError: () => setShowModal(false),
+    onError: () => setShowModal(false)
   };
 
   const {
@@ -135,16 +138,18 @@ const Component = () => {
     update,
 
     // re-fetch with existing config
-    refresh,
+    refresh
   } = useAxiosRequest<DataTypeResponse>(config, options);
 };
 ```
+
 ## Configuration
 
 `config` could be the following types:
-1) null or undefined
-2) string (url)
-3) object (axios config)
+
+1. null or undefined
+2. string (url)
+3. object (axios config)
 
 `useAxiosRequest` triggers a request for every new non-nullable `config`. So the code below is buggy.
 
@@ -152,19 +157,21 @@ const Component = () => {
 const MyComponent = props => {
   const { data } = useAxiosRequest({
     url: '/api',
-    params: { param1: 'param1' },
+    params: { param1: 'param1' }
   });
   return <div>{data}</div>;
 };
 ```
+
 It causes an infinite loop because `useAxiosRequest` gets a new object on every render.
 You have two options to fix it:
 
-1) move the config outside the component
+1. move the config outside the component
+
 ```js
 const CONFIG = {
   url: '/api',
-  params: { param1: 'param1' },
+  params: { param1: 'param1' }
 };
 const MyComponent = props => {
   const { data } = useAxiosRequest(CONFIG);
@@ -172,13 +179,14 @@ const MyComponent = props => {
 };
 ```
 
-2) memoize the config if it depends on props
+2. memoize the config if it depends on props
+
 ```js
 const MyComponent = props => {
   const config = React.useMemo(
     () => ({
       url: '/api',
-      params: { param1: props.param1 },
+      params: { param1: props.param1 }
     }),
     [props.param1]
   );
