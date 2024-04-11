@@ -73,6 +73,10 @@ type Action<D> =
       payload: D;
     }
   | {
+      type: 'fetched latest';
+      payload: D;
+    }
+  | {
       type: 'error';
       payload: AxiosError;
     };
